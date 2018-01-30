@@ -84,10 +84,10 @@ cd $genomedir
   fi
 
   cd ${outDir}
-  for file1 in ${WD}/${fqDir}/*.R1.fastq.gz; do
-    file2=$(basename $file1 .R1.fastq.gz).R2.fastq.gz
+  for file1 in ${WD}/${fqDir}/*.R1.fastq; do
+    file2=$(basename $file1 .R1.fastq).R2.fastq
     echo "STAR --runMode alignReads --runThreadN $numproc  ${STARalignReadsOptions}  --outSAMtype BAM SortedByCoordinate --outSAMorder Paired  --outFileNamePrefix $(basename $file1 _001.fastq.gz).STAR.  --genomeDir $genomedir  --readFilesIn ${file1} ${file2}"
-    STAR --runMode alignReads --runThreadN $nThreads  ${STARalignReadsOptions}  --outSAMtype BAM SortedByCoordinate --outSAMorder Paired  --outFileNamePrefix $(basename $file1 .fastq.gz).STAR. --genomeDir $genomedir  --readFilesIn ${file1} ${file2}
+    STAR --runMode alignReads --runThreadN $nThreads  ${STARalignReadsOptions}  --outSAMtype BAM SortedByCoordinate --outSAMorder Paired  --outFileNamePrefix $(basename $file1 .fastq).STAR. --genomeDir $genomedir  --readFilesIn ${file1} ${file2}
   done
 
   cd ${WD}
