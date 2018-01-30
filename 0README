@@ -1,0 +1,16 @@
+#### Sources of P. pacificus genome files ####
+# To download these files, please type 'source 0README' from this directory
+
+## The Hybrid2 genome assembly
+mkdir fasta
+cd fasta
+wget http://pristionchus.org/download/pacificus_Hybrid2.gz
+gzip -d pacificus_Hybrid2.gz
+cd ..
+
+## Hybrid2 gene annotation files
+mkdir annotation
+cd annotation
+wget http://pristionchus.org/download/pacificus_Hybrid2_annotations.tgz
+tar xvf pacificus_Hybrid2_annotations.tgz
+cd ..
