@@ -6,6 +6,7 @@ mkdir fasta
 cd fasta
 wget http://pristionchus.org/download/pacificus_Hybrid2.gz
 gzip -d pacificus_Hybrid2.gz
+ln -s pacificus_Hybrid2 pacificus_Hybrid2.fa
 cd ..
 
 ## Hybrid2 gene annotation files
