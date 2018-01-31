@@ -2,18 +2,15 @@
 
 #PBS -N PP_RNAseq_STAR_align_T502
 #PBS -k o
-#PBS -q debug
 #PBS -l nodes=1:ppn=16,vmem=80gb
-#PBS -l walltime=1:00:00
+#PBS -l walltime=4:00:00
 #PBS -m abe
 
 module load star
 
 fileDir=/N/dc2/scratch/rtraborn/T502_fastqs/PP_RNAseq
 ####### Before running the script, please enter path to desired output directory, below ####
-WD=/N/u/rtraborn/Carbonate/T502_RNAseq
-#WD=/N/u/<yourUserId>/Carbonate/T502_RNAseq/
-outDir=/N/dc2/scratch/rtraborn/starAlign
+WD=/N/u/<yourUserId>/Carbonate/T502_RNAseq/
 fqDir=fastqs
 genomedir=${WD}/fasta
 genomeFasta=pacificus_Hybrid2.fa
@@ -83,9 +80,9 @@ cd $genomedir
     echo "Using existing STAR suffix array for genome file $genomedir/*.fa"
   fi
 
-  cd ${outDir}
-  for file1 in ${WD}/${fqDir}/*.R1.fastq; do
-    file2=$(basename $file1 .R1.fastq).R2.fastq
+  cd ${WD}/${fqDir}
+  for file1 in *.R1.fastq.gz; do
+    file2=$(basename $file1 .R1.fastq.gz).R2.fastq.gz
     echo "STAR --runMode alignReads --runThreadN $numproc  ${STARalignReadsOptions}  --outSAMtype BAM SortedByCoordinate --outSAMorder Paired  --outFileNamePrefix $(basename $file1 _001.fastq.gz).STAR.  --genomeDir $genomedir  --readFilesIn ${file1} ${file2}"
     STAR --runMode alignReads --runThreadN $nThreads  ${STARalignReadsOptions}  --outSAMtype BAM SortedByCoordinate --outSAMorder Paired  --outFileNamePrefix $(basename $file1 .fastq).STAR. --genomeDir $genomedir  --readFilesIn ${file1} ${file2}
   done
