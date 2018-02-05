@@ -1,47 +1,44 @@
-#!/bin/R
 
 #creates a series of plots relating to differential expression analysis
 # uses the bioconductor package 'limma'
 
-
-
-require("limma") ## loading required packages (requires prior installation of each of the following)
+## loading required packages (requires prior installation of each of the following)
+require("limma") 
 require("edgeR")
 require("Rsubread")
 require("Biobase")
 require("gplots")
-require("DESeq2")
+#require("DESeq2")
 
-bamDir=/N/dc2/scratch/rtraborn/T502_fastq/PP_RNAseq
-WD=/N/dc2/scratch/rtraborn/T502_RNAseq
-
-#library #could be used in place of require()
+WD="/N/dc2/scratch/rtraborn/T502_RNAseq/scripts"
+setwd(WD)
 
 #obtaining directory paths for both groups
-seudDir <- "/scratch/rtraborn/archive/neuron_RNAseq/fastq/bam_alns/neuron_7mo" 
-NHR40Dir <- c("/scratch/rtraborn/archive/neuron_RNAseq/fastq/bam_alns/neuron_13mo")
+bamDir <- "../alignments"
+pristAnnot <- "../annotation/Hybrid2_AUGUSTUS2014_gene.gtf"
 
-seud_files <- list.files(seudDir,pattern="\\.bam$", full.names=TRUE) #obtaining list of file names for both groups
-NHR40_files <- list.files(NHR40Dir,pattern="\\.bam$", full.names=TRUE)
+#obtaining list of file names for both groups
+seud_files <- list.files(bamDir, pattern="\\Seud1", full.names=TRUE)
+NHR40_files <- list.files(bamDir, pattern="\\NHR40", full.names=TRUE)
 
 prist_files <- c(seud_files, NHR40_files)
 
 #creating a count table
-neuron_fc <- featureCounts(neuron_files, annot.inbuilt="mm10", useMetaFeatures=TRUE, strandSpecific=1, nthreads=6)
+prist_fc <- featureCounts(prist_files, annot.ext=pristAnnot, useMetaFeatures=TRUE, strandSpecific=1, isPairedEnd=FALSE, nthreads=16, isGTFAnnotationFile=TRUE, primaryOnly=TRUE)
 
 ## end of read counts section ##
 
-load("neuron_fc_obj.RData") #starting from an R binary containing the featureCounts list created using the commands above. To run the above commands simply uncomment them (remove the leading '#' from each individual command), and commend out this line.
+#load("prist_DE.RData") #starting from an R binary containing the featureCounts list created using the commands above. To run the above commands simply uncomment them (remove the leading '#' from each individual command), and commend out this line.
 
-dge <- DGEList(counts = neuron_fc$counts,
-               group = c(rep("neuron_7",6),rep("neuron_13",6)),
-               genes = neuron_fc$annotation$GeneID)
+dge <- DGEList(counts = prist_fc$counts,
+               group = c(rep("seud1",4),rep("nhr40",4)),
+               genes = prist_fc$annotation$GeneID)
                
 dge <- calcNormFactors(dge)
 
 design <- model.matrix(~dge$samples$group)
                
-colnames(design) <- c("neuron_7", "neuron_13")
+colnames(design) <- c("seud1", "nhr40")
 
 design #what does this object look like
 
@@ -51,31 +48,35 @@ dge <- estimateGLMTagwiseDisp(dge, design)
 
 plotBCV(dge)
 
+#plotMDS(dge)
+
 v <- voom(dge, design, plot=TRUE)
 
 fit <- glmFit(dge, design) #fit the results to a linear model
 
 lrt <- glmLRT(fit, coef = 2) #performs a likihood ratio test
 
-neuro_top_tags <- topTags(lrt)
+save(dge, file="pristDGE.RData")
 
-save(neuro_top_tags, file= "neuro_top_tags.RData")
+prist_top_tags <- topTags(lrt, n=1000, adjust.method="BH", sort.by="PValue", p.value=0.01)
 
-head(neuro_top_tags) #shows the top results on the screen
+save(prist_top_tags, file= "prist_top_tags.RData")
 
-write.csv(neuro_top_tags, file="neuro_top_tags.csv", col.names=TRUE, row.names=FALSE) #writes a csv file to your working directory
+head(prist_top_tags[[1]]) #shows the top results on the screen
+
+write.csv(prist_top_tags[[1]], file="prist_top_tags.csv", col.names=TRUE, row.names=FALSE) #writes a csv file to your working directory
 
 dev.off()               
                
 ##############
 
 #Creating an ExpressionSet object to perform the heatmap operations on               
-Mn_eset <-new("ExpressionSet", exprs=as.matrix(Dp_edger))
+#Mn_eset <-new("ExpressionSet", exprs=as.matrix(Dp_edger))
                
 #de_data <- Dp_dge$pseudo.counts
 
 #differential analysis results
-#de_data <- cbind(de_data, neuro_top_tags)
+#de_data <- cbind(de_data, prist_top_tags)
 
 #calculating the false discovery rate (FDR)
 #de_data$FDR <- p.adjust(de_data$P.Value, method = 'BH')
