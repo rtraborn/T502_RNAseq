@@ -3,13 +3,13 @@
 #PBS -N PP_RNAseq_DE_analysis
 #PBS -k o
 #PBS -l nodes=1:ppn=16,vmem=80gb
-#PBS -l walltime=1:00:00
+#PBS -l walltime=2:00:00
 #PBS -m abe
-#PBS -q debug
 
 module load r
 
-WD=/N/dc2/scratch/rtraborn/T502_RNAseq/scripts
+/<please enter the full path to scripts/>
+#WD=/N/dc2/scratch/rtraborn/T502_RNAseq/scripts
 
 cd $WD
 

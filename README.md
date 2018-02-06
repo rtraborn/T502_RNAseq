@@ -118,4 +118,52 @@ samtools view NHR40-2.R1.bam | less
 ## exit by typing the letter 'q' at any time.
 ```
 
-See you on Thursday!
+### Differential gene expression analysis
+
+Now we will analyze our data to determine the set of genes that are upregulated. To do this, we will need to integrate our alignment data with the set of gene features from Pristionchus.
+
+The repo has been updated since the previous class. To bring your repo up to date, please stage, commit and push your changes (not log files, alignment files or fastqs, though!) to your fork. See above for instructions.
+
+Next, you'll need to pull from my repo as follows:
+```
+git pull https://github.com/rtraborn/T502_RNAseq master
+### type :wq to exit the (vim) merge screen
+
+```
+
+
+#### Installation instructions
+
+Before we can continue, it is necessary to install a set of R packages, most of them from the Bioconductor package repository. Do do this, please following the instructions in `./INSTALL.md` by typing `less INSTALL.md` from the top level of this directory. It will be necessary to do this from the R console in both RStudio and Carbonate.
+
+#### Submitting the job on Carbonate
+If you want to perform the entireity of this job on Carbonate, we will use the batch script, `de_launch.sh` that is included in `scripts/`.
+Similarly, you will also need to edit the 14th line of the R script `de_analysis_Prist_hybrid2.R`.
+Please edit the file using a text editor (as described previously) to provide the necessary path on your file system.
+
+Once this is complete, please type the following:
+```
+cd scripts
+qsub de_launch.sh
+```
+
+During class we will go through the analysis, and (explore the results together) using RStudio.
+
+#### Interactive DGE analysis using an R console in RStudio
+
+The following commands will help get you started:
+
+```
+#loading the library files:
+library("limma") 
+library("edgeR")
+library("Rsubread")
+library("Biobase")
+library("gplots")
+```
+
+Now we will load the R binary file. This contains the count data calculated from the bam alignments. Since it takes a bit of time, we will use the caculated counts matrix directly.
+
+```
+load("prist_DE.RData")
+```
