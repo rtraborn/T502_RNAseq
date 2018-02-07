@@ -10,6 +10,7 @@ require("Biobase")
 require("gplots")
 #require("DESeq2")
 
+### set your path to the scripts directory
 WD="/N/dc2/scratch/rtraborn/T502_RNAseq/scripts"
 setwd(WD)
 
@@ -25,6 +26,8 @@ prist_files <- c(seud_files, NHR40_files)
 
 #creating a count table
 prist_fc <- featureCounts(prist_files, annot.ext=pristAnnot, useMetaFeatures=TRUE, strandSpecific=1, isPairedEnd=FALSE, nthreads=16, isGTFAnnotationFile=TRUE, primaryOnly=TRUE)
+
+save(prist_fc, file="prist_DE.RData") #saving our featureCounts data to an R binary
 
 ## end of read counts section ##
 
@@ -64,16 +67,19 @@ save(prist_top_tags, file= "prist_top_tags.RData")
 
 head(prist_top_tags[[1]]) #shows the top results on the screen
 
-write.csv(prist_top_tags[[1]], file="prist_top_tags.csv", col.names=TRUE, row.names=FALSE) #writes a csv file to your working directory
+write.csv(prist_top_tags[[1]], file="prist_top_tags.csv", row.names=FALSE) #writes a csv file to your working directory
 
 dev.off()               
                
 ##############
+Making a heatmap with the differentially-expressed genes
 
 #Creating an ExpressionSet object to perform the heatmap operations on               
-#Mn_eset <-new("ExpressionSet", exprs=as.matrix(Dp_edger))
+#Mn_eset <-new("ExpressionSet", exprs=as.matrix(dge))
                
-#de_data <- Dp_dge$pseudo.counts
+#prist_tags <- topTags(lrt, adjust.method="BH", sort.by="PValue")
+
+#de_data <- dge$pseudo.counts
 
 #differential analysis results
 #de_data <- cbind(de_data, prist_top_tags)
@@ -83,13 +89,6 @@ dev.off()
 
 #dispersion of each tag cluster
 #de_data$tw_dis <- dge$tagwise.dispersion
-
-#coordinates of each tag cluster
-#data_coord2 <- matrix(data=unlist(strsplit(rownames(de_data), split="_")),
-#                      nrow= length(row.names(de_data)),
-#                      byrow=T)
-
-#data_coord2 <- as.data.frame(data_coord2, stringsAsFactors=F)
 
 #de_index <- which(de_data1$FDR<0.01)
 

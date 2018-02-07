@@ -8,7 +8,7 @@
 
 module load r
 
-/<please enter the full path to scripts/>
+WD=/<please enter the full path to scripts/>
 #WD=/N/dc2/scratch/rtraborn/T502_RNAseq/scripts
 
 cd $WD

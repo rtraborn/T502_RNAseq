@@ -54,7 +54,7 @@ Before we begin, make sure that you've commited the changes that you've already 
 git status #see list of updated files
 git add <path to file(s) to add> #replace everything after "add" with path(s) to the file(s) in your repo that you want to track (*not* fastq files!). 
 git commit -m "Compose a descriptive commit message."
-put push origin master
+git push origin master
 ```
 
 Great. Now that this is complete you'll need to pull from this (i.e. my) repository, as I've added a few important updates to the workflow (and to this document also!). 
