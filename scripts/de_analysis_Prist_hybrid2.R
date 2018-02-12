@@ -8,9 +8,6 @@ require("edgeR")
 require("Rsubread")
 require("Biobase")
 require("gplots")
-require("mixomics")
-#require("DESeq2")
-
 
 ### set your path to the scripts directory
 WD="/N/dc2/scratch/rtraborn/T502_RNAseq/scripts"
@@ -112,17 +109,25 @@ head(de_data)
 top_tags <- topTags(lrt, n= 18146, sort.by="none")
 
 #differential analysis results
-de_data <- cbind(de_data, top_tags)
-
-#calculating the false discovery rate (FDR)
-de_data$FDR <- p.adjust(de_data$P.Value, method = 'BH')
+de_data <- cbind(de_data, top_tags[[1]])
+head(de_data)
 
 diff.genes = rownames(de_data[de_data$FDR<0.01, ])
 head(diff.genes)
 length(diff.genes)
 
 dge.subset = dge[diff.genes, ]
+colnames(dge.subset$counts) <- c("Seud1-1","Seud1-2","Seud1-3", "Seud1-4", "NHR40-1","NHR40-2", "NHR40-3", "NHR40-4")
+rownames(dge.subset$counts) <- NULL
 
-heatmap.2(dge.subset$counts, symm=FALSE,symkey=FALSE,scale="row", density.info="none",trace="none",
+# plotting the heatmap
+heatmap.2(dge.subset$counts,symm=FALSE,symkey=FALSE, scale="row", 
+          density.info="none",trace="none", key=TRUE,margins=c(10,10))
+
+# plotting and saving the heatmap to a file
+pdf("Prist_dge_heatmap.pdf")
+heatmap.2(dge.subset$counts,symm=FALSE,symkey=FALSE, scale="row", density.info="none",trace="none",
           key=TRUE,margins=c(10,10))
+dev.off()
 
+#### Done! ######
