@@ -44,6 +44,17 @@ dge <- calcNormFactors(dge)
 
 dge$samples
 
+### making a plot of the library counts data
+barplot(dge$samples$lib.size, names=c("Seud1-1","Seud1-2","Seud1-3",
+                                      "Seud1-4", "NHR40-1","NHR40-2", "NHR40-3",
+                                      "NHR40-4"), las=2, ylim=c(0,30000000))
+
+### making a plot of the counts value
+logcounts <- cpm(dge,log=TRUE)
+boxplot(logcounts, xlab="", ylab="(log2) counts per million",las=2)
+abline(h=median(logcounts),col="blue")
+title("Boxplots of logCPMs (unnormalised)")
+
 # Filtering out genes that have a low number of counts (i.e. are lowly-expressed)
 
 keep <- rowSums(cpm(dge)>1) >= 2
@@ -123,6 +134,8 @@ rownames(dge.subset$counts) <- NULL
 # plotting the heatmap
 heatmap.2(dge.subset$counts,symm=FALSE,symkey=FALSE, scale="row", 
           density.info="none",trace="none", key=TRUE,margins=c(10,10))
+
+dev.off()
 
 # plotting and saving the heatmap to a file
 pdf("Prist_dge_heatmap.pdf")
