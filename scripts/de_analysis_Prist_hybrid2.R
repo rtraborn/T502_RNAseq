@@ -36,8 +36,16 @@ save(prist_fc, file="prist_DE.RData") #saving our featureCounts data to an R bin
 dge <- DGEList(counts = prist_fc$counts,
                group = c(rep("seud1",4),rep("nhr40",4)),
                genes = prist_fc$annotation$GeneID)
+
+### Now we will apply TMM normalization
                
 dge <- calcNormFactors(dge)
+
+### Let's take a look at the normalization factors
+
+dge$samples
+
+# Creating a design matrix to model our experiment
 
 design <- model.matrix(~dge$samples$group)
                
@@ -45,13 +53,19 @@ colnames(design) <- c("seud1", "nhr40")
 
 design #what does this object look like
 
-dge <- estimateGLMCommonDisp(dge, design) #estimate the dispersion
+#estimate the dispersion
+
+dge <- estimateGLMCommonDisp(dge, design)
 
 dge <- estimateGLMTagwiseDisp(dge, design) 
 
-plotBCV(dge)
+# calcualte the common dispersion
 
-#plotMDS(dge)
+sqrt(dge$common.disp)
+
+# Now we plot the tagwise dispersions against the log2-scaled counts-per million (CPM) values
+
+plotBCV(dge)
 
 v <- voom(dge, design, plot=TRUE)
 
@@ -59,7 +73,7 @@ fit <- glmFit(dge, design) #fit the results to a linear model
 
 lrt <- glmLRT(fit, coef = 2) #performs a likihood ratio test
 
-save(dge, file="pristDGE.RData")
+save(dge, file="pristDGE.RData") #saving the updated dge object to our working directory
 
 prist_top_tags <- topTags(lrt, n=1000, adjust.method="BH", sort.by="PValue", p.value=0.01)
 
