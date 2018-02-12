@@ -8,7 +8,9 @@ require("edgeR")
 require("Rsubread")
 require("Biobase")
 require("gplots")
+require("mixomics")
 #require("DESeq2")
+
 
 ### set your path to the scripts directory
 WD="/N/dc2/scratch/rtraborn/T502_RNAseq/scripts"
@@ -45,21 +47,25 @@ dge <- calcNormFactors(dge)
 
 dge$samples
 
+# Filtering out genes that have a low number of counts (i.e. are lowly-expressed)
+
+keep <- rowSums(cpm(dge)>1) >= 2
+dge <- dge[keep, keep.lib.sizes=FALSE]
+
 # Creating a design matrix to model our experiment
 
 design <- model.matrix(~dge$samples$group)
-               
+
 colnames(design) <- c("seud1", "nhr40")
 
-design #what does this object look like
+design #what does this object look like?
 
 #estimate the dispersion
 
 dge <- estimateGLMCommonDisp(dge, design)
-
 dge <- estimateGLMTagwiseDisp(dge, design) 
 
-# calcualte the common dispersion
+# evaluate the common dispersion
 
 sqrt(dge$common.disp)
 
@@ -67,54 +73,56 @@ sqrt(dge$common.disp)
 
 plotBCV(dge)
 
-v <- voom(dge, design, plot=TRUE)
+# Now we performed the differential expression calculation
 
-fit <- glmFit(dge, design) #fit the results to a linear model
+fit <- glmFit(dge, design)
+lrt <- glmLRT(fit, coef=2)
+topTags(lrt)
 
-lrt <- glmLRT(fit, coef = 2) #performs a likihood ratio test
+summary(de <- decideTestsDGE(lrt, p=0.01, adjust="BH"))
+de_tags <- rownames(decideTestsDGE(lrt, p=0.01, adjust="BH"))
+de_tags <- rownames(dge)[as.logical(de)]
+
+#mkaing a smear (i.e. a mean-difference) plot of our data
+
+plotSmear(lrt, de.tags=de_tags)
+abline(h=c(-2,2), col="blue")
+
+# We can also make the (classic) volcano plot from our data
+volcanoData <- cbind(lrt$table$logFC, -log10(lrt$table$PValue))
+plot(volcanoData, pch=19)
+abline(v=c(-2,2), col="red")
 
 save(dge, file="pristDGE.RData") #saving the updated dge object to our working directory
 
-prist_top_tags <- topTags(lrt, n=1000, adjust.method="BH", sort.by="PValue", p.value=0.01)
-
-save(prist_top_tags, file= "prist_top_tags.RData")
-
+prist_top_tags <- topTags(lrt, adjust.method="BH", sort.by="PValue", p.value=0.01)
 head(prist_top_tags[[1]]) #shows the top results on the screen
-
 write.csv(prist_top_tags[[1]], file="prist_top_tags.csv", row.names=FALSE) #writes a csv file to your working directory
+save(prist_top_tags, file= "prist_top_tags.RData") #saves the prist_top_tags file as a p-value
 
-dev.off()               
-               
 ##############
-Making a heatmap with the differentially-expressed genes
+#Making a heatmap with the differentially-expressed genes
+library(Biobase) #load this required package if you haven't already done so
+library(gplots)
 
-#Creating an ExpressionSet object to perform the heatmap operations on               
-#Mn_eset <-new("ExpressionSet", exprs=as.matrix(dge))
-               
-#prist_tags <- topTags(lrt, adjust.method="BH", sort.by="PValue")
+de_data <- dge$counts
+colnames(de_data) <- c("Seud1-1","Seud1-2","Seud1-3", "Seud1-4", "NHR40-1","NHR40-2", "NHR40-3", "NHR40-4")
+head(de_data)
 
-#de_data <- dge$pseudo.counts
+top_tags <- topTags(lrt, n= 18146, sort.by="none")
 
 #differential analysis results
-#de_data <- cbind(de_data, prist_top_tags)
+de_data <- cbind(de_data, top_tags)
 
 #calculating the false discovery rate (FDR)
-#de_data$FDR <- p.adjust(de_data$P.Value, method = 'BH')
+de_data$FDR <- p.adjust(de_data$P.Value, method = 'BH')
 
-#dispersion of each tag cluster
-#de_data$tw_dis <- dge$tagwise.dispersion
+diff.genes = rownames(de_data[de_data$FDR<0.01, ])
+head(diff.genes)
+length(diff.genes)
 
-#de_index <- which(de_data1$FDR<0.01)
+dge.subset = dge[diff.genes, ]
 
-#length(de_index)
+heatmap.2(dge.subset$counts, symm=FALSE,symkey=FALSE,scale="row", density.info="none",trace="none",
+          key=TRUE,margins=c(10,10))
 
-#de <- de_table1[de_index,]
-
-#selected <- rownames(de)
-
-#esetSel <- Mn_eset[selected, ]
-
-#heatmap.2(exprs(esetSel), symm=FALSE,symkey=FALSE,scale="row", density.info="none",trace="none",
-#          key=TRUE,margins=c(10,10))
-
-#dev.off()
